@@ -1,3 +1,4 @@
-libs/
 java/target/
 native/include/
+test/env/
+test/libs/
