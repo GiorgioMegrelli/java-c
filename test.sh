@@ -4,14 +4,10 @@ source globals.sh
 source utils.sh
 
 
-TEST_MAIN_JAVA_PATH="$TEST_DIR/Main.java"
-TEST_ENV_MAIN_JAVA_PATH="$TEST_ENV_DIR/Main.java"
-
-
 echo_bold "Preparing test environment"
 
 mkdir -p $TEST_ENV_DIR
-cp $TEST_MAIN_JAVA_PATH $TEST_ENV_MAIN_JAVA_PATH
+cp "$TEST_DIR/Main.java" "$TEST_ENV_DIR/Main.java"
 
 for cls_file in $(find $SOURCE_DIR -type f); do
     f_name=$(basename $cls_file)

@@ -11,6 +11,7 @@ JNI_MD_H_DIRNAME=$(dirname $(find / -name 'jni_md.h'))
 
 TEST_DIR="$(pwd)/test"
 TEST_ENV_DIR="$TEST_DIR/env"
-LIBS_DIR="$TEST_DIR/libs"
+
+LIBS_DIR="$NATIVE_DIR/libs"
 
 LIB_SO_OBJECT="$LIBS_DIR/libFileSys.so"
