@@ -33,6 +33,7 @@ echo_bold "Generating shared library"
 mkdir -p $LIBS_DIR
 
 gcc $NATIVE_DIR/*.c         \
+    $NATIVE_DIR/src/*.c     \
     -shared                 \
     -o $LIB_SO_OBJECT       \
     -I $JNI_H_DIRNAME       \
