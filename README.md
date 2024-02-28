@@ -4,6 +4,22 @@
 
 C implementation of java methods
 
+## Setup Docker
+
+### Windows
+
+**Powershell:**
+
+Build docker image:
+```shell
+docker build -t java-development .
+```
+
+Run container in interactive mode:
+```shell
+docker run -it --rm -v ${PWD}:/usr/src/app java-development
+```
+
 ## Usage
 
 **Build required shared library with command:**
@@ -25,19 +41,3 @@ The command steps:
 - Copies required files from `java/source` into `test/env`
 - Compiles copied files (with `Main.java`)
 - Runs compiled files with shared library
-
-## Setup Docker
-
-### Windows
-
-**Powershell:**
-
-Build docker image:
-```shell
-docker build -t java-development .
-```
-
-Run container in interactive mode:
-```shell
-docker run -it --rm -v ${PWD}:/usr/src/app java-development
-```
