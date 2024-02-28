@@ -4,7 +4,7 @@
 
 
 typedef struct {
-    bool allow_hidden_jb;
+    bool allow_hidden;
     char * root;
 } obj_fields_t;
 

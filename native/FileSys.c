@@ -12,30 +12,29 @@
 #include <sys/stat.h>
 
 
-void store_in_obj_fields(obj_fields_t *, JNIEnv *, jobject);
+#define DOT_CHAR '.'
+#define CURR_DIR "."
+
+
+static void store_in_obj_fields(obj_fields_t *, JNIEnv *, jobject);
+
+static void print_dir(const char *);
+static void iter_dir(const char *, obj_fields_t *);
+static inline bool is_special_entry_name(const char *);
+static inline bool is_hidden_file(const char *);
 
 
 JNIEXPORT void
-JNICALL Java_FileSys_printFiles(JNIEnv * env, jobject jobj, jboolean jbool)
+JNICALL Java_FileSys_printFiles(JNIEnv * env, jobject jobj, jboolean jb_recursive)
 {
     obj_fields_t obj_fields;
     store_in_obj_fields(&obj_fields, env, jobj);
     char * curr_path = curr_wd(obj_fields.root, NULL);
 
-    DIR *dir;
-    struct dirent *ent;
-    struct stat st;
-
-    if((dir = opendir(curr_path)) != NULL) {
-        while((ent = readdir(dir)) != NULL) {
-            if(stat(ent->d_name, &st) == 0 && S_ISREG(st.st_mode)) {
-                char * buffer = PATH_BUFFER();
-                realpath(ent->d_name, buffer);
-                printf("%s\n", buffer);
-                free(buffer);
-            }
-        }
-        closedir(dir);
+    if(jb_recursive) {
+        iter_dir(curr_path, &obj_fields);
+    } else {
+        print_dir(curr_path);
     }
 
     free(curr_path);
@@ -43,7 +42,7 @@ JNICALL Java_FileSys_printFiles(JNIEnv * env, jobject jobj, jboolean jbool)
 }
 
 
-void
+static void
 store_in_obj_fields(obj_fields_t * obj_fields_ptr, JNIEnv * env, jobject jobj)
 {
     jclass cls = (*env)->GetObjectClass(env, jobj);
@@ -66,7 +65,60 @@ store_in_obj_fields(obj_fields_t * obj_fields_ptr, JNIEnv * env, jobject jobj)
         init_obj_fields_t(obj_fields_ptr, allow_hidden, NULL);
     } else {
         const char * root_val = (*env)->GetStringUTFChars(env, root_ptr, NULL);
-        init_obj_fields_t(obj_fields_ptr, allow_hidden, root_val);
-        (*env)->ReleaseStringUTFChars(env, root_ptr, root_val);
+        if(root_val == NULL) {
+            init_obj_fields_t(obj_fields_ptr, allow_hidden, NULL);
+        } else {
+            init_obj_fields_t(
+                obj_fields_ptr,
+                allow_hidden,
+                (strlen(root_val) == 0)? CURR_DIR: root_val
+            );
+            (*env)->ReleaseStringUTFChars(env, root_ptr, root_val);
+        }
     }
+}
+
+static void
+print_dir(const char * curr_path)
+{
+    DIR *dir;
+    if((dir = opendir(curr_path)) != NULL) {
+        struct dirent *ent;
+        struct stat st;
+
+        char * buffer = PATH_BUFFER();
+
+        while((ent = readdir(dir)) != NULL) {
+            if(stat(ent->d_name, &st) == 0 && S_ISREG(st.st_mode)) {
+                realpath(ent->d_name, buffer);
+                printf("%s\n", buffer);
+            }
+        }
+
+        free(buffer);
+        closedir(dir);
+    }
+}
+
+static void
+iter_dir(const char * curr_path, obj_fields_t * obj_fields_ptr)
+{}
+
+static inline bool
+is_special_entry_name(const char * f_name)
+{
+    int d_name_len = strlen(f_name);
+    if(d_name_len == 1) {
+        return f_name[0] == DOT_CHAR;
+    } else if(d_name_len == 2) {
+        return f_name[0] == DOT_CHAR
+            && f_name[1] == DOT_CHAR;
+    }
+    return false;
+}
+
+static inline bool
+is_hidden_file(const char * f_name)
+{
+    return f_name[0] == DOT_CHAR;
 }
