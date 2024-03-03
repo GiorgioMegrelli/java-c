@@ -9,11 +9,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/stat.h>
 #include <limits.h>
 
 
-#define DOT_CHAR '.'
 #define CURR_DIR "."
 #define UNIX_PATH_SEP "/"
 
@@ -21,9 +19,6 @@
 static void store_in_obj_fields(obj_fields_t *, JNIEnv *, jobject);
 
 static void iter_dir(const char *, const obj_fields_t *, int depth);
-static inline bool is_special_entry_name(const char *);
-static inline bool is_hidden_file(const char *);
-static inline bool is_dir(const char *);
 
 
 JNIEXPORT void
@@ -101,31 +96,4 @@ iter_dir(const char * curr_path, const obj_fields_t * obj_fields_ptr, int depth)
 
         closedir(dir);
     }
-}
-
-static inline bool
-is_special_entry_name(const char * f_name)
-{
-    int d_name_len = strlen(f_name);
-    if(d_name_len == 1) {
-        return f_name[0] == DOT_CHAR;
-    } else if(d_name_len == 2) {
-        return f_name[0] == DOT_CHAR
-            && f_name[1] == DOT_CHAR;
-    }
-    return false;
-}
-
-static inline bool
-is_hidden_file(const char * f_name)
-{
-    return f_name[0] == DOT_CHAR;
-}
-
-static inline bool
-is_dir(const char * path)
-{
-    struct stat path_stat;
-    return stat(path, &path_stat) == 0
-        && S_ISDIR(path_stat.st_mode);
 }
