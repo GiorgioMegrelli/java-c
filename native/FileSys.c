@@ -18,20 +18,26 @@
 
 static void store_in_obj_fields(obj_fields_t *, JNIEnv *, jobject);
 
-static void iter_dir(const char *, const obj_fields_t *, int depth);
+static void iter_dir(const char *, CharBuffer_t *, const obj_fields_t *, int depth);
 
 
-JNIEXPORT void
+JNIEXPORT jstring
 JNICALL Java_FileSys_printFiles(JNIEnv * env, jobject jobj, jboolean jb_recursive)
 {
     obj_fields_t obj_fields;
     store_in_obj_fields(&obj_fields, env, jobj);
     char * curr_path = curr_wd(obj_fields.root, NULL);
 
-    iter_dir(curr_path, &obj_fields, (jb_recursive)? INT_MAX: 1);
+    CharBuffer_t ch_buf = CharBuffer_create();
+    iter_dir(curr_path, &ch_buf, &obj_fields, (jb_recursive)? INT_MAX: 1);
+    char * content = CharBuffer_value_alloc(&ch_buf);
+    jstring result = (*env)->NewStringUTF(env, content);
+    free(content);
+    CharBuffer_destroy(&ch_buf);
 
     free(curr_path);
     destroy_obj_fields_t(&obj_fields);
+    return result;
 }
 
 
@@ -71,9 +77,9 @@ store_in_obj_fields(obj_fields_t * obj_fields_ptr, JNIEnv * env, jobject jobj)
     }
 }
 
-static void
-iter_dir(const char * curr_path, const obj_fields_t * obj_fields_ptr, int depth)
-{
+static void iter_dir(
+    const char * curr_path, CharBuffer_t * ch_buf, const obj_fields_t * obj_fields_ptr, int depth
+) {
     if(depth <= 0) return;
 
     DIR *dir;
@@ -87,9 +93,10 @@ iter_dir(const char * curr_path, const obj_fields_t * obj_fields_ptr, int depth)
 
             snprintf(buffer, PATH_MAX_LEN, "%s%s%s", curr_path, UNIX_PATH_SEP, ent->d_name);
             if(is_dir(buffer)) {
-                iter_dir(buffer, obj_fields_ptr, depth - 1);
+                iter_dir(buffer, ch_buf, obj_fields_ptr, depth - 1);
             } else {
-                printf("%s\n", buffer);
+                CharBuffer_append_str(ch_buf, buffer);
+                CharBuffer_append(ch_buf, '\n');
             }
         }
         free(buffer);

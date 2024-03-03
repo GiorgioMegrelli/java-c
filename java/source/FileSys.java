@@ -23,9 +23,9 @@ public class FileSys {
         this.allowHidden = allowHidden;
     }
 
-    public void printFiles() {
-        printFiles(false);
+    public String printFiles() {
+        return printFiles(false);
     }
 
-    public native void printFiles(boolean recursive);
+    public native String printFiles(boolean recursive);
 }
